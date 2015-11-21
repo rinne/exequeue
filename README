@@ -27,7 +27,6 @@ The constructor method. Options can be omitted, which implies
 defaults. Default values for options are:
 
   var options = {
-
     // Number of concurrent subprocesses is not limited.
     // Allowed override values are integers >= 1
     maxConcurrent: undefined, 
@@ -36,7 +35,6 @@ defaults. Default values for options are:
     // then that value is used as default, otherwise '/bin/sh'
     // is used.
     shell: undefined
-
   };
 
 ExeQueue.prototype.killAll()
@@ -58,7 +56,6 @@ Options can be omitted, which implies defaults. Following options are
 available:
 
   var options = {
-
     // Time limit (in seconds) after which the command execution times
     // out. The processes that are still queued at this point are never
     // started and the associated promises are rejected with error. The
@@ -110,7 +107,6 @@ available:
     // Allowed override value is true (both can be set independently).
     storeStdout: false,
     storeStderr: false
-
   };
 
 Example
