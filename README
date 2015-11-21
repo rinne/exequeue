@@ -105,7 +105,7 @@ var options = {
   // behavior can be overridden in setting storeStdout and/or 
   // storeStderr to true.
   // If set to true, the corresponding output is passed to promise
-  // resolve as Buffer.
+  // resolve as string.
   // Default is false.
   // Allowed override value is true (both can be set independently).
   storeStdout: false,
