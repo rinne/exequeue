@@ -1,6 +1,6 @@
 {
 	"name": "exequeue",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"description": "Promise based subprocess execution queue.",
 	"main": "exequeue.js",
 	"scripts": {
