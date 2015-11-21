@@ -1,0 +1,31 @@
+{
+	"name": "exequeue",
+	"version": "1.0.0",
+	"description": "Promise based subprocess execution queue.",
+	"main": "exequeue.js",
+	"scripts": {
+		"test": "node ./test/exequeue-test.js"
+	},
+	"engines": {
+		"node": ">=0.12.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/rinne/exequeue.git"
+	},
+	"keywords": [
+		"subprocess",
+		"command",
+		"child process"
+	],
+	"author": {
+		"name": "Timo J. Rinne",
+		"email": "tri@iki.fi",
+		"url": "https://github.com/rinne/"
+	},
+	"license": "GPL-2.0",
+	"bugs": {
+		"url": "https://github.com/rinne/exequeue/issues"
+	},
+	"homepage": "https://github.com/rinne/exequeue#readme"
+}
