@@ -166,13 +166,13 @@ Promise.resolve('START')
 .catch( function(err) { console.log(err); } );
 ```
 
-AUTHOR
+Author
 ======
 
 Timo J. Rinne <tri@iki.fi>
 
 
-LICENSE
+License
 =======
 
 GPL-2.0
