@@ -46,7 +46,12 @@ Promise.resolve('STARTING TESTS.')
 .then( function(ret) { console.log(ret); return equ.run('pwd', null, { cwd: '/tmp', storeStdout: true } ) } )
 .then( function(ret) { console.log(ret); return equ.run('s=2; date -u; sleep $s; date -u; echo "Hello." 1>&2',
 														null,
-														{ useShell: true, noShellEscape: true, storeStdout: true, storeStderr: true } ) } )
+														{ useShell: true,
+														  noShellEscape: true,
+														  storeStdout: true,
+														  storeStderr: true,
+														  stdoutEncoding: 'binary',
+														  stderrEncoding: 'buffer' } ) } )
 .then( function(ret) { console.log(ret); return equ.run('tr',
 														['a', 'b'],
 														{ input: 'aaaaa', storeStdout: true } ) } )

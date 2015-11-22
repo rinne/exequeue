@@ -87,7 +87,9 @@ function progExecuteWaiting(equ) {
 
 function progExecuteInt(equ, prog) {
 	var spawn = require('child_process').spawn;
-	var spawnOpts = {};
+	var spawnOpts = {
+		encoding: 'buffer'
+	};
 	if (prog.hasOwnProperty('cwd')) {
 		spawnOpts.cwd = prog.cwd;
 	}
@@ -103,6 +105,12 @@ function progExecuteInt(equ, prog) {
 		if (prog.child) {
 			prog.child = null;
 			equ.runMap.delete(prog.key);
+			if ((prog.stdout !== undefined) && (prog.stdoutEncoding !== 'buffer')) {
+				prog.stdout = prog.stdout.toString(prog.stdoutEncoding);
+			}
+			if ((prog.stderr !== undefined) && (prog.stderrEncoding !== 'buffer')) {
+				prog.stderr = prog.stderr.toString(prog.stderrEncoding);
+			}
 			if (exitCode === 0) {
 				prog.completion.forEach(function(c) { c.resolve( { exitCode: 0, stdout: prog.stdout, stderr: prog.stderr } ); } );
 			} else {
@@ -135,10 +143,18 @@ function progExecuteInt(equ, prog) {
 			progExecuteWaiting(equ);
 		}
 	} );
-	prog.child.stdout.on('data', function (data) { if (prog.stdout !== undefined) { prog.stdout += data; } } );
-	prog.child.stderr.on('data', function (data) { if (prog.stderr !== undefined) { prog.stderr += data; } } );
+	prog.child.stdout.on('data', function (data) {
+		if (prog.stdout !== undefined) {
+			prog.stdout = Buffer.concat( [ prog.stdout, data ] );
+		}
+	} );
+	prog.child.stderr.on('data', function (data) {
+		if (prog.stderr !== undefined) {
+			prog.stderr = Buffer.concat( [ prog.stderr, data ] );
+		}
+	} );
 	prog.child.stdin.on('error', function() { } );
-	if (prog.input !== '') {
+	if (prog.input.length > 0) {
 		prog.child.stdin.write(prog.input);
 	}
 	prog.child.stdin.end();
@@ -204,9 +220,12 @@ ExeQueue.prototype.run = function(command, args, options) {
 		noShellEscape: false,
 		cwd: process.cwd(),
 		env: process.env,
-		input: '',
+		input: new Buffer(0),
+		inputEncoding: 'binary',
 		storeStdout: false,
-		storeStderr: false
+		storeStderr: false,
+		stdoutEncoding: 'utf8',
+		stderrEncoding: 'utf8'
 	};
 	options = {
 		maxTime: ((options.hasOwnProperty('maxTime') && (options.maxTime !== undefined)) ?
@@ -219,6 +238,8 @@ ExeQueue.prototype.run = function(command, args, options) {
 						options.noShellEscape : defaults.noShellEscape) ? true : false,
 		input: ((options.hasOwnProperty('input') && (options.input !== undefined)) ?
 				options.input : defaults.input),
+		inputEncoding: ((options.hasOwnProperty('inputEncoding') && (options.inputEncoding !== undefined)) ?
+						options.inputEncoding : defaults.inputEncoding),
 		cwd: ((options.hasOwnProperty('cwd') && (options.cwd !== undefined)) ?
 			  options.cwd : defaults.cwd),
 		env: ((options.hasOwnProperty('env') && (options.env !== undefined)) ?
@@ -226,7 +247,11 @@ ExeQueue.prototype.run = function(command, args, options) {
 		storeStderr: ((options.hasOwnProperty('storeStderr') && (options.storeStderr !== undefined)) ?
 					  options.storeStderr : defaults.storeStderr) ? true : false,
 		storeStdout: ((options.hasOwnProperty('storeStdout') && (options.storeStdout !== undefined)) ?
-					  options.storeStdout : defaults.storeStdout) ? true : false
+					  options.storeStdout : defaults.storeStdout) ? true : false,
+		stdoutEncoding: ((options.hasOwnProperty('stdoutEncoding') && (options.stdoutEncoding !== undefined)) ?
+						 options.stdoutEncoding : defaults.stdoutEncoding),
+		stderrEncoding: ((options.hasOwnProperty('stderrEncoding') && (options.stderrEncoding !== undefined)) ?
+						 options.stderrEncoding : defaults.stderrEncoding)
 	};
 	if (options.noShellEscape && ((! options.useShell) || (args.length > 0))) {
 		throw new Error("Conflicting use of noShellEscape in options.");
@@ -249,14 +274,37 @@ ExeQueue.prototype.run = function(command, args, options) {
 	if (typeof (options.env) !== 'object') {
 		throw new Error("Invalid env in options.");
 	}
+	if ((['buffer','ascii','utf8','utf16le','ucs2','base64','binary','hex']).indexOf(options.stdoutEncoding) < 0) {
+		throw new Error("Invalid stdoutEncoding in options.");
+	}
+	if ((['buffer','ascii','utf8','utf16le','ucs2','base64','binary','hex']).indexOf(options.stderrEncoding) < 0) {
+		throw new Error("Invalid stderrEncoding in options.");
+	}
+	if ((['buffer','ascii','utf8','utf16le','ucs2','base64','binary','hex']).indexOf(options.inputEncoding) < 0) {
+		throw new Error("Invalid inputEncoding in options.");
+	}
+	if ((options.inputEncoding === 'buffer') && ((typeof(options.input) !== 'object') || (! Buffer.isBuffer(options.input)))) {
+		throw new Error("Invalid input. Input data must be passed as Buffer if inputEncoding is set to 'buffer'.");
+	}
+	if (typeof(options.input) === 'number') {
+		options.input = options.input.toString();
+	}
+	if (! ((typeof(options.input) === 'string') || ((typeof(options.input) === 'object') && Buffer.isBuffer(options.input)))) {
+		throw new Error("Invalid input type.");
+	}
+	if ((options.inputEncoding !== 'buffer') && (typeof(options.input) === 'string')) {
+		options.input = new Buffer(options.input, options.inputEncoding);
+	}
 	var prog = {
 		command: null,
 		args: null,
 		cwd: options.cwd,
 		env: options.env,
-		input: ((options.input === undefined) || (options.input === null)) ? '' : options.input,
-		stdout: options.storeStdout ? '' : undefined,
-		stderr: options.storeStderr ? '' : undefined,
+		input: options.input,
+		stdout: options.storeStdout ? new Buffer(0) : undefined,
+		stderr: options.storeStderr ? new Buffer(0) : undefined,
+		stdoutEncoding: options.stdoutEncoding,
+		stderrEncoding: options.stderrEncoding,
 		killReason: undefined
 	};
 	if (options.useShell) {

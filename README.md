@@ -122,6 +122,18 @@ var options = {
   // Allowed override value is string or buffer.
   input: '',
 
+  // Input can be passed either as a Buffer object or as a string.
+  // If the input is passed as a Buffer object, it's piped to the
+  // process as is. If it's passed as a string, it's decoded using
+  // the encoding that can be set as inputEncoding. If 'binary' 
+  // is used, the input string is converted to buffer unprocessed.
+  // If inputEncoding is set to 'buffer', input must be passed
+  // as a Buffer object instead of a string.
+  // Default value is 'binary'.
+  // Allowed override values are: 'buffer', 'ascii', 'utf8',
+  // 'utf16le', 'ucs2', 'base64', and 'hex'.
+  inputEncoding: 'binary',
+
   // As default, process output (stdout and stderr) is discarded. This
   // behavior can be overridden in setting storeStdout and/or 
   // storeStderr to true.
@@ -130,7 +142,21 @@ var options = {
   // Default is false.
   // Allowed override value is true (both can be set independently).
   storeStdout: false,
-  storeStderr: false
+  storeStderr: false,
+
+  // If storeStdout and/or storeStderr is set, the program output
+  // is passed to the caller after the process terminates. The format
+  // of the data can be set with stdoutEncoding and stderrEncoding
+  // options. If the value is 'buffer', the output is passed in
+  // a Buffer object without any encoding. If some other encoding
+  // is requested, the output is converted to string using
+  // the given encoding before it's passed to the caller.
+  // Default value is 'utf8'.
+  // Allowed override values are: 'buffer', 'binary', 'ascii',
+  // 'utf16le', 'ucs2', 'base64', and 'hex' (both can be set
+  // independently).
+  stdoutEncoding: 'utf8',
+  stderrEncoding: 'utf8'
 
 };
 ```
