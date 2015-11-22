@@ -165,3 +165,14 @@ Promise.resolve('START')
 .then( function(ret) { console.log(ret); return Promise.resolve('END') } )
 .catch( function(err) { console.log(err); } );
 ```
+
+AUTHOR
+======
+
+Timo J. Rinne <tri@iki.fi>
+
+
+LICENSE
+=======
+
+GPL-2.0
