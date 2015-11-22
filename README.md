@@ -91,7 +91,7 @@ var options = {
   // overridden here. Only absolute paths are allowed (i.e. the first
   // character of the string must be /).
   // Default value is undefined.
-  // Alloved override value is a non-empty string beginning with
+  // Allowed override value is a non-empty string beginning with
   // slash (/)
   cwd: undefined
 
