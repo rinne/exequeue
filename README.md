@@ -83,6 +83,24 @@ available:
     // Allowed override value is true.
     useShell: false,
 
+    // As default, the working directory the subprocess is executed
+    // in, is derived from the node process itself. It can be
+    // overridden here. Only absolute paths are allowed (i.e. the first
+    // character of the string must be /).
+    // Default value is undefined.
+    // Alloved override value is a non-empty string beginning with
+    // slash (/)
+    cwd: undefined
+
+    // As default, the environment variables of the subprocess are
+    // derived from the node process itself (i.e. process.env). This
+    // can be overridden here. In order to pass empty environment, use
+    // env = {} instead of env = undefined.
+    // Default value is undefined (i.e. use process.env).
+    // Allowed override value is an object of environment variable
+    // name value pairs.
+    env: undefined
+
     // If shell is used in command processing, the command and
     // parameters are escaped as default and passed to shell as
     // literals. By setting noShellEscape to true, this functionality

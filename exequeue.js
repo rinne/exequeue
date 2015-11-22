@@ -26,7 +26,7 @@ var ExeQueue = function(options) {
 		if ((options === undefined) || (options === null)) {
 			options = {};
 		} else {
-			throw new UserException("Invalid options.");
+			throw new Error("Invalid options.");
 		}
 	}
 	var defaults = {
@@ -34,8 +34,10 @@ var ExeQueue = function(options) {
 		shell: undefined
 	};
 	options = {
-		maxConcurrent: options.hasOwnProperty('maxConcurrent') ? options.maxConcurrent : defaults.maxConcurrent,
-		shell: options.hasOwnProperty('shell') ? options.shell : defaults.shell
+		maxConcurrent: ((options.hasOwnProperty('maxConcurrent') && (options.maxConcurrent !== undefined)) ?
+						options.maxConcurrent : defaults.maxConcurrent),
+		shell: ((options.hasOwnProperty('shell') && (options.shell !== undefined))
+				? options.shell : defaults.shell)
 	};
 	if (options.maxConcurrent === null) {
 		options.maxConcurrent = undefined;
@@ -43,7 +45,7 @@ var ExeQueue = function(options) {
 	if (options.maxConcurrent !== undefined) {
 		options.maxConcurrent = parseInt(options.maxConcurrent);
 		if (isNaN(options.maxConcurrent) || (options.maxConcurrent < 1)) {
-			throw new UserException("Invalid maxConcurrent in options.");
+			throw new Error("Invalid maxConcurrent in options.");
 		}
 	}
 	if ((options.shell === undefined) || (options.shell === null) || (options.shell === '')) {
@@ -85,7 +87,14 @@ function progExecuteWaiting(equ) {
 
 function progExecuteInt(equ, prog) {
 	var spawn = require('child_process').spawn;
-	prog.child = spawn(prog.command, prog.args);
+	var spawnOpts = {};
+	if (prog.hasOwnProperty('cwd')) {
+		spawnOpts.cwd = prog.cwd;
+	}
+	if (prog.hasOwnProperty('env')) {
+		spawnOpts.env = prog.env;
+	}
+	prog.child = spawn(prog.command, prog.args, spawnOpts);
 	prog.child.on('close', function(exitCode, signal) {
 		if (prog.timeout) {
 			clearTimeout(prog.timeout);
@@ -159,7 +168,7 @@ ExeQueue.prototype.run = function(command, args, options) {
 		if ((options === undefined) || (options === null)) {
 			options = {};
 		} else {
-			throw new UserException("Invalid options.");
+			throw new Error("Invalid options.");
 		}
 	}
 	var defaults = {
@@ -167,21 +176,34 @@ ExeQueue.prototype.run = function(command, args, options) {
 		shared: false,
 		useShell: false,
 		noShellEscape: false,
+		cwd: process.cwd(),
+		env: process.env,
 		input: '',
 		storeStdout: false,
 		storeStderr: false
 	};
 	options = {
-		maxTime: options.hasOwnProperty('maxTime') ? options.maxTime : defaults.maxTime,
-		shared: (options.hasOwnProperty('shared') ? options.shared : defaults.shared) ? true : false,
-		useShell: (options.hasOwnProperty('useShell') ? options.useShell : defaults.useShell) ? true : false,
-		noShellEscape: (options.hasOwnProperty('noShellEscape') ? options.noShellEscape : defaults.noShellEscape) ? true : false,
-		input: options.hasOwnProperty('input') ? options.input : defaults.input,
-		storeStdout: (options.hasOwnProperty('storeStdout') ? options.storeStdout : defaults.storeStdout) ? true : false,
-		storeStderr: (options.hasOwnProperty('storeStderr') ? options.storeStderr : defaults.storeStderr) ? true : false
+		maxTime: ((options.hasOwnProperty('maxTime') && (options.maxTime !== undefined)) ?
+				  options.maxTime : defaults.maxTime),
+		shared: ((options.hasOwnProperty('shared') && (options.shared !== undefined)) ?
+				 options.shared : defaults.shared) ? true : false,
+		useShell: ((options.hasOwnProperty('useShell') && (options.useShell !== undefined)) ?
+				   options.useShell : defaults.useShell) ? true : false,
+		noShellEscape: ((options.hasOwnProperty('noShellEscape') && (options.noShellEscape !== undefined)) ?
+						options.noShellEscape : defaults.noShellEscape) ? true : false,
+		input: ((options.hasOwnProperty('input') && (options.input !== undefined)) ?
+				options.input : defaults.input),
+		cwd: ((options.hasOwnProperty('cwd') && (options.cwd !== undefined)) ?
+			  options.cwd : defaults.cwd),
+		env: ((options.hasOwnProperty('env') && (options.env !== undefined)) ?
+			  options.env : defaults.env),
+		storeStderr: ((options.hasOwnProperty('storeStderr') && (options.storeStderr !== undefined)) ?
+					  options.storeStderr : defaults.storeStderr) ? true : false,
+		storeStdout: ((options.hasOwnProperty('storeStdout') && (options.storeStdout !== undefined)) ?
+					  options.storeStdout : defaults.storeStdout) ? true : false
 	};
 	if (options.noShellEscape && ((! options.useShell) || (args.length > 0))) {
-		throw new UserException("Conflicting use of noShellEscape in options.");
+		throw new Error("Conflicting use of noShellEscape in options.");
 	}
 	if (options.maxTime === null) {
 		options.maxTime = undefined;
@@ -189,12 +211,20 @@ ExeQueue.prototype.run = function(command, args, options) {
 	if (options.maxTime) {
 		options.maxTime = parseFloat(options.maxTime);
 		if (isNaN(options.maxTime) || (options.maxTime < 0.001)) {
-			throw new UserException("Invalid maxTime in options.");
+			throw new Error("Invalid maxTime in options.");
 		}
+	}
+	if ((typeof (options.cwd) !== 'string') || (options.cwd.substring(0, 1) !== '/')) {
+		throw new Error("Invalid cwd in options.");
+	}
+	if (typeof (options.env) !== 'object') {
+		throw new Error("Invalid env in options.");
 	}
 	var prog = {
 		command: null,
 		args: null,
+		cwd: options.cwd,
+		env: options.env,
 		input: ((options.input === undefined) || (options.input === null)) ? '' : options.input,
 		stdout: options.storeStdout ? '' : undefined,
 		stderr: options.storeStderr ? '' : undefined,
