@@ -136,9 +136,8 @@ var options = {
 
   // As default, process output (stdout and stderr) is discarded. This
   // behavior can be overridden in setting storeStdout and/or 
-  // storeStderr to true.
-  // If set to true, the corresponding output is passed to promise
-  // resolve as string.
+  // storeStderr to true. If set to true, the corresponding output is
+  // passed to promise resolve as a string or Buffer object.
   // Default is false.
   // Allowed override value is true (both can be set independently).
   storeStdout: false,
