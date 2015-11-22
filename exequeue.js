@@ -43,8 +43,8 @@ var ExeQueue = function(options) {
 		options.maxConcurrent = undefined;
 	}
 	if (options.maxConcurrent !== undefined) {
-		options.maxConcurrent = parseInt(options.maxConcurrent);
-		if (isNaN(options.maxConcurrent) || (options.maxConcurrent < 1)) {
+		options.maxConcurrent = parseFloat(options.maxConcurrent);
+		if (! (Number.isInteger(options.maxConcurrent) && (options.maxConcurrent > 0))) {
 			throw new Error("Invalid maxConcurrent in options.");
 		}
 	}
@@ -104,7 +104,7 @@ function progExecuteInt(equ, prog) {
 			prog.child = null;
 			equ.runMap.delete(prog.key);
 			if (exitCode === 0) {
-				prog.completion.forEach(function(c) { c.resolve( { stdout: prog.stdout, stderr: prog.stderr } ); } );
+				prog.completion.forEach(function(c) { c.resolve( { exitCode: 0, stdout: prog.stdout, stderr: prog.stderr } ); } );
 			} else {
 				var error = {
 					error: (signal ?
@@ -144,6 +144,32 @@ function progExecuteInt(equ, prog) {
 	prog.child.stdin.end();
 	return true;
 }
+
+var progKey;
+(function() {
+	var hash = undefined;
+	var alg = 'md5';
+    try {
+		var createHash = require('crypto').createHash;
+        var newHash = function() { return createHash(alg); };
+		newHash().update('TEST').digest('hex');
+        hash = function(data) {
+            return newHash().update(data).digest('hex');
+        };
+    } catch(exception) {
+		console.log(exception);
+        hash = null;
+    }
+	if (hash) {
+		progKey = function(prog) {
+			return hash(JSON.stringify(prog));
+		}
+	} else {
+		progKey = function(prog) {
+			return JSON.stringify(prog);
+		}
+	}
+})();
 
 ExeQueue.prototype.killAll = function() {
 	var equ = this;
@@ -208,10 +234,13 @@ ExeQueue.prototype.run = function(command, args, options) {
 	if (options.maxTime === null) {
 		options.maxTime = undefined;
 	}
-	if (options.maxTime) {
+	if (options.maxTime !== undefined) {
 		options.maxTime = parseFloat(options.maxTime);
-		if (isNaN(options.maxTime) || (options.maxTime < 0.001)) {
+		if (! (Number.isFinite(options.maxTime) && (options.maxTime > 0.0))) {
 			throw new Error("Invalid maxTime in options.");
+		}
+		if (options.maxTime < 0.001) {
+			options.maxTime = 0.001;
 		}
 	}
 	if ((typeof (options.cwd) !== 'string') || (options.cwd.substring(0, 1) !== '/')) {
@@ -249,8 +278,7 @@ ExeQueue.prototype.run = function(command, args, options) {
 	if (! options.shared) {
 		prog.id = ++equ.idCnt;
 	}
-	//prog.key = JSON.stringify(prog);
-	prog.key = require('crypto').createHash('sha1').update(JSON.stringify(prog)).digest('hex');
+	prog.key = progKey(prog);
 	if (options.shared) {
 		prog.id = ++equ.idCnt;
 	}
