@@ -63,7 +63,8 @@ var ExeQueue = function(options) {
 };
 
 function progGenericError(message) {
-	var rv = {
+	var error = new Error((message !== undefined) ? message : "Unknown error.");
+	error.details = {
 		error: (message !== undefined) ? message : "Unknown error.",
 		exitCode: -1,
 		signal: null,
@@ -71,7 +72,7 @@ function progGenericError(message) {
 		stdout: undefined,
 		stderr: undefined
 	};
-	return rv;
+	return error;
 }
 
 function progExecuteWaiting(equ) {
@@ -114,11 +115,11 @@ function progExecuteInt(equ, prog) {
 			if (exitCode === 0) {
 				prog.completion.forEach(function(c) { c.resolve( { exitCode: 0, stdout: prog.stdout, stderr: prog.stderr } ); } );
 			} else {
-				var error = {
-					error: (signal ?
-							("Program terminated by signal" +
-							 (((signal === 'SIGTERM') && (prog.killReason !== undefined)) ? (" because of " + prog.killReason + ".") : ".")) :
-							"Program terminated by abnormal exit code."),
+				var error = new Error(signal ?
+									  ("Program terminated by signal" +
+									   (((signal === 'SIGTERM') && (prog.killReason !== undefined)) ? (" because of " + prog.killReason + ".") : ".")) :
+									  "Program terminated by abnormal exit code.");
+				error.details = {
 					exitCode: exitCode,
 					signal: signal,
 					errno: null,
