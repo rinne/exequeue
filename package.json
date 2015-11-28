@@ -1,6 +1,6 @@
 {
 	"name": "exequeue",
-	"version": "1.2.2",
+	"version": "1.2.3",
 	"description": "Promise based subprocess execution queue.",
 	"main": "exequeue.js",
 	"scripts": {
@@ -11,7 +11,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/rinne/exequeue.git"
+		"url": "git+https://github.com/rinne/node-exequeue.git"
 	},
 	"keywords": [
 		"subprocess",
@@ -25,7 +25,7 @@
 	},
 	"license": "GPL-2.0",
 	"bugs": {
-		"url": "https://github.com/rinne/exequeue/issues"
+		"url": "https://github.com/rinne/node-exequeue/issues"
 	},
-	"homepage": "https://github.com/rinne/exequeue#readme"
+	"homepage": "https://github.com/rinne/node-exequeue#readme"
 }
